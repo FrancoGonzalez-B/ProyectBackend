@@ -1,0 +1,31 @@
+{
+  "name": "backendtienda",
+  "version": "1.0.0",
+  "description": "Backend Duro",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FrancoGonzalez-B/ProyectBackend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/FrancoGonzalez-B/ProyectBackend/issues"
+  },
+  "homepage": "https://github.com/FrancoGonzalez-B/ProyectBackend#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "mysql2": "^3.24.2",
+    "sequelize": "^6.37.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
