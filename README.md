@@ -1,5 +1,6 @@
 # ProyectBackend
-Backend Duro
+Backend Duro 
+Ingeniero duro
 
 
 # Reglas del Grupo
