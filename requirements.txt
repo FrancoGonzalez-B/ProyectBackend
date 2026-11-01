@@ -1,10 +1,9 @@
-# Dependencias del proyecto (archivo compartido con el grupo: si ya existe uno, unir las líneas).
-# Después de instalar y comprobar que todo funciona, congelar versiones con:  pip freeze > requirements.txt
 fastapi
 uvicorn[standard]
 pydantic
 sqlalchemy
-psycopg2-binary
+mysqlclient
+python-dotenv
 alembic
 pytest
 httpx
