@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Defensa — Backend de tienda de ropa</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #f4f7fb;
+      background: #10233f;
+      font-size: clamp(15px, 1.25vw, 18px);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    main {
+      height: 100vh;
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      padding: 1rem 1.5rem 5.25rem;
+    }
+
+    .slide {
+      width: min(100%, 1100px);
+      min-height: 0;
+      max-height: calc(100vh - 7rem);
+      overflow-y: auto;
+    }
+
+    .slide[hidden] { display: none; }
+
+    .eyebrow {
+      color: #9de3db;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: .4rem 0 1.4rem;
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      line-height: 1.08;
+    }
+
+    h2 {
+      margin: .2rem 0 1.4rem;
+      font-size: clamp(1.6rem, 2.8vw, 2.3rem);
+      line-height: 1.12;
+    }
+
+    p, li { max-width: 72ch; line-height: 1.4; }
+    ul { padding-left: 1.15em; }
+    li { margin: .28em 0; }
+    strong { color: #9de3db; }
+    .lead { font-size: 1.2em; max-width: 38ch; }
+
+    .diagram {
+      border-left: .2rem solid #9de3db;
+      padding: .6rem 1rem;
+      font-size: .9em;
+      line-height: 1.8;
+    }
+
+    .entity-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .25rem 1.25rem;
+      font-size: .78em;
+    }
+
+    .entity-grid p { margin: .25rem 0; }
+
+    footer {
+      position: fixed;
+      inset: auto 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: .65rem 1.5rem;
+      background: #0a192d;
+    }
+
+    .controls { display: flex; gap: .75rem; }
+
+    button {
+      min-width: 7rem;
+      border: 2px solid #9de3db;
+      border-radius: .35rem;
+      padding: .55rem .8rem;
+      background: #10233f;
+      color: #fff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover, button:focus-visible {
+      background: #25466c;
+      outline: 3px solid #fff;
+      outline-offset: 2px;
+    }
+
+    button:disabled {
+      border-color: #9da9b8;
+      color: #d3dae2;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 600px) {
+      :root { font-size: 15px; }
+      main { padding: .75rem .85rem 4.5rem; }
+      .slide { max-height: calc(100vh - 5.5rem); }
+      footer { padding: .5rem .75rem; }
+      button { min-width: 4.5rem; padding: .4rem .55rem; }
+    }
+
+    @media (max-height: 700px) {
+      main { padding-top: .5rem; padding-bottom: 4.75rem; }
+      .slide { max-height: calc(100vh - 5.75rem); }
+      h1 { font-size: clamp(1.8rem, 3.5vw, 2.7rem); }
+      h2 { font-size: clamp(1.45rem, 2.5vw, 2rem); }
+      p, li { line-height: 1.3; }
+      li { margin: .2em 0; }
+      footer { padding-top: .4rem; padding-bottom: .4rem; }
+    }
+
+    @page {
+      size: A4 landscape;
+      margin: .4in;
+    }
+
+    @media print {
+      :root {
+        color-scheme: light;
+        color: #17243a;
+        background: #fff;
+        font-size: 15pt;
+      }
+
+      body, main {
+        display: block;
+        height: auto;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+      }
+
+      .slide,
+      .slide[hidden] {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        height: 7.45in;
+        min-height: 0;
+        max-height: none;
+        padding: .25in;
+        color: #17243a;
+        background: #fff;
+        break-after: page;
+        page-break-after: always;
+      }
+
+      .slide:last-child {
+        break-after: auto;
+        page-break-after: auto;
+      }
+
+      h1 {
+        max-width: 9in;
+        font-size: 34pt;
+      }
+
+      h2 {
+        font-size: 27pt;
+      }
+
+      p, li {
+        max-width: 68ch;
+        font-size: 16pt;
+        line-height: 1.35;
+      }
+
+      li { margin: .25em 0; }
+      .eyebrow { font-size: 11pt; }
+      .lead { font-size: 19pt; }
+      .diagram {
+        border-color: #087e78;
+        font-size: 16pt;
+      }
+      .entity-grid { font-size: 13pt; }
+      strong { color: #075e59; }
+      footer { display: none !important; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="slide" aria-labelledby="s1">
+      <p class="eyebrow">ICINF1108 · Desarrollo de Backend · 0:20</p>
+      <h1 id="s1">API backend<br>para una tienda de ropa</h1>
+      <p class="lead">
+        Catálogo, inventario por talla y color, clientes y pedidos,
+        con persistencia en MySQL.
+      </p>
+      <p><strong>Integrantes:</strong> Benjamin Aedo, Franco Gonzales,<br>
+        Lucas Martinez y Francisco Martinez.</p>
+    </section>
+
+    <section class="slide" aria-labelledby="s2" hidden>
+      <p class="eyebrow">Inicio · Equipo y responsabilidades · 0:40</p>
+      <h2 id="s2">Cuatro áreas que se integran</h2>
+      <ul>
+        <li><strong>Benjamin Aedo:</strong> coordinación; documentación e integración.</li>
+        <li><strong>Franco Gonzales:</strong> dominio, datos, validaciones y migraciones.</li>
+        <li><strong>Lucas Martinez:</strong> API, servicios y repositorios.</li>
+        <li><strong>Francisco Martinez:</strong> calidad, pruebas y casos de error.</li>
+      </ul>
+      <p>En el grupo de cuatro, coordinación y documentación se combinan.</p>
+    </section>
+
+    <section class="slide" aria-labelledby="s3" hidden>
+      <p class="eyebrow">1 · Problema y usuarios · 0:35</p>
+      <h2 id="s3">¿Qué problema abordamos?</h2>
+      <ul>
+        <li>Una tienda debe mantener coordinados catálogo, tallas, colores y existencias.</li>
+        <li>Los administradores necesitan registrar cambios y conocer el stock disponible.</li>
+        <li>Los clientes necesitan consultar productos y revisar sus compras.</li>
+        <li>Un inventario desactualizado puede causar ventas sin disponibilidad y pedidos difíciles de seguir.</li>
+      </ul>
+    </section>
+
+    <section class="slide" aria-labelledby="s4" hidden>
+      <p class="eyebrow">1 · Alcance y aceptación · 0:50</p>
+      <h2 id="s4">Qué resuelve esta versión</h2>
+      <ul>
+        <li>Registrar e iniciar sesión; administrar clientes, categorías y productos.</li>
+        <li>Administrar variantes, consultar el catálogo y procesar pedidos.</li>
+        <li>El catálogo permite filtro, búsqueda, orden y paginación en una consulta.</li>
+        <li><strong>Fuera de alcance:</strong> frontend, pasarela de pago real y despacho/logística.</li>
+        <li><strong>Aceptación:</strong> CRUD, errores controlados, reglas de stock y cambios persistentes tras reiniciar.</li>
+      </ul>
+    </section>
+
+    <section class="slide" aria-labelledby="s5" hidden>
+      <p class="eyebrow">2 · Modelo del dominio · 0:45</p>
+      <h2 id="s5">Entidades y relaciones persistentes</h2>
+      <p class="diagram">
+        Categoría 1 → N Producto 1 → N Variante<br>
+        Cliente 1 → N Pedido 1 → N Detalle<br>
+        Variante 1 → N Detalle
+      </p>
+      <p>Las relaciones 1:N se guardan en MySQL mediante claves foráneas.</p>
+    </section>
+
+    <section class="slide" aria-labelledby="s5a" hidden>
+      <p class="eyebrow">2 · Modelo del dominio · 0:30</p>
+      <h2 id="s5a">Atributos que describen el negocio</h2>
+      <div class="entity-grid">
+        <p><strong>Usuario/cliente:</strong> nombre, apellido, email, rol, teléfono y dirección.</p>
+        <p><strong>Categoría:</strong> nombre, slug, descripción y estado activo.</p>
+        <p><strong>Producto:</strong> nombre, SKU, descripción, precio, stock y categoría.</p>
+        <p><strong>Variante:</strong> SKU, talla, color, precio, stock y producto.</p>
+        <p><strong>Pedido:</strong> cliente, dirección de envío, estado, fecha y total.</p>
+        <p><strong>Detalle:</strong> pedido, producto, variante, cantidad y precio unitario.</p>
+      </div>
+      <p>Cada entidad cuenta además con un identificador único.</p>
+    </section>
+
+    <section class="slide" aria-labelledby="s6" hidden>
+      <p class="eyebrow">2 · Reglas de negocio · 0:45</p>
+      <h2 id="s6">Inventario y pedidos coherentes</h2>
+      <ul>
+        <li><strong>Stock:</strong> se controla por variante; el total del producto refleja la suma.</li>
+        <li><strong>Precio:</strong> el servidor lee el precio vigente y calcula el total en centavos.</li>
+        <li><strong>Transacción:</strong> pedido, detalles y descuento de inventario se confirman juntos.</li>
+        <li><strong>Estados:</strong> el pedido avanza paso a paso; sólo uno pendiente puede cancelarse.</li>
+        <li>Cancelar repone las unidades una sola vez; una operación inválida no deja cambios parciales.</li>
+      </ul>
+    </section>
+
+    <section class="slide" aria-labelledby="s7" hidden>
+      <p class="eyebrow">2 · Validaciones y respuestas · 0:40</p>
+      <h2 id="s7">Validar antes de persistir</h2>
+      <ul>
+        <li>Se comprueban longitudes, formato de correo, precio, cantidad e IDs.</li>
+        <li>Estados y tipos admitidos son conjuntos controlados.</li>
+        <li>Se verifica la existencia de categorías, clientes, productos y variantes.</li>
+        <li>Duplicados y conflictos de inventario reciben errores controlados.</li>
+        <li>Los errores usan JSON uniforme: código, mensaje y detalles; HTTP distingue 401, 403, 404, 409 y 422.</li>
+      </ul>
+    </section>
+
+    <section class="slide" aria-labelledby="s8" hidden>
+      <p class="eyebrow">3 · Contrato REST y OpenAPI · 0:30</p>
+      <h2 id="s8">Operaciones documentadas</h2>
+      <ul>
+        <li>El contrato OpenAPI 3.0.3 describe <strong>32 operaciones</strong>.</li>
+        <li>Swagger UI permite explorar rutas, parámetros, cuerpos y respuestas.</li>
+        <li>Los verbos representan la operación: GET consulta, POST crea, PUT/PATCH actualiza y DELETE elimina.</li>
+        <li>El catálogo es público; las acciones administrativas requieren autenticación y rol.</li>
+      </ul>
+      <p class="diagram">Swagger: <strong>http://localhost:3000/api-docs/</strong><br>
+        En esta demostración local se usó el puerto 3001.</p>
+    </section>
+
+    <section class="slide" aria-labelledby="s9" hidden>
+      <p class="eyebrow">3 · Arquitectura por capas · 1:00</p>
+      <h2 id="s9">Seguimos una petición hasta MySQL</h2>
+      <p class="diagram">
+        Ruta y DTO → controlador → servicio<br>
+        → repositorio Sequelize → modelo ORM → MySQL
+      </p>
+      <ul>
+        <li><strong>Presentation:</strong> recibe HTTP, valida DTO, autentica y responde.</li>
+        <li><strong>Application:</strong> coordina casos de uso.</li>
+        <li><strong>Domain:</strong> contiene entidades, estados y reglas.</li>
+        <li><strong>Infrastructure:</strong> implementa conexión, modelos y repositorios SQL.</li>
+      </ul>
+      <p>Ejemplo: <code>POST /pedidos</code> descuenta variantes en una transacción.</p>
+    </section>
+
+    <section class="slide" aria-labelledby="s10" hidden>
+      <p class="eyebrow">3 · MySQL, migraciones y seeders · 0:30</p>
+      <h2 id="s10">Preparar la base de datos</h2>
+      <ul>
+        <li>Node.js 22.12+, npm y MySQL/MariaDB (XAMPP sirve para desarrollo local).</li>
+        <li><code>npm ci</code>; copiar <code>.env.example</code> a <code>.env</code> y configurar conexión/secreto.</li>
+        <li>Ejecutar <code>npm run db:create</code>, <code>npm run db:migrate</code> y <code>npm run db:seed</code>.</li>
+        <li>El seeder carga 2 categorías, 2 productos, 3 variantes, 2 clientes, 2 pedidos y sus detalles.</li>
+        <li><code>npm run db:verify</code> comprueba integridad. No usar credenciales reales en Git.</li>
+      </ul>
+    </section>
+
+    <section class="slide" aria-labelledby="s11" hidden>
+      <p class="eyebrow">4 · Demostración en vivo · 1:10</p>
+      <h2 id="s11">Un recorrido breve por la API</h2>
+      <ol>
+        <li>Abrir Swagger y mostrar <code>GET /salud</code>.</li>
+        <li>Consultar <code>GET /productos?categoria=1&amp;ordenarPor=precio&amp;pagina=1&amp;limite=10</code>.</li>
+        <li>Iniciar sesión en <code>POST /auth/login</code> y autorizar las rutas administrativas.</li>
+        <li>Mostrar una lectura o creación autorizada y revisar los datos en phpMyAdmin.</li>
+        <li>Enviar un DTO inválido y una transición de estado incorrecta; explicar 422 y 409.</li>
+      </ol>
+      <p>No revelar el archivo <code>.env</code> ni mostrar contraseñas durante la defensa.</p>
+    </section>
+
+    <section class="slide" aria-labelledby="s12" hidden>
+      <p class="eyebrow">4 · Pruebas y evidencia · 0:45</p>
+      <h2 id="s12">Resultados reproducibles</h2>
+      <ul>
+        <li><strong>24/24</strong> pruebas unitarias y de contrato aprobadas.</li>
+        <li><strong>21/21</strong> comprobaciones de integración MySQL aprobadas.</li>
+        <li>Se probaron permisos, CRUD, filtros, errores, concurrencia, transacciones y migración desde esquema anterior.</li>
+        <li><code>npm run db:verify</code> no reportó inconsistencias.</li>
+        <li>La lectura de un registro después de reiniciar la API comprobó persistencia.</li>
+      </ul>
+    </section>
+
+    <section class="slide" aria-labelledby="s13" hidden>
+      <p class="eyebrow">5 · Decisiones y mejoras · 0:40</p>
+      <h2 id="s13">Decisiones y limitaciones</h2>
+      <ul>
+        <li>Separar variantes permite saber qué talla y color tienen existencias.</li>
+        <li>Sequelize y las migraciones versionadas permiten evolucionar el esquema con control.</li>
+        <li>Las transacciones protegen pedido, detalles e inventario frente a errores.</li>
+        <li>La versión no procesa pagos reales ni coordina despachos.</li>
+        <li>Mejoras futuras: pasarela de pago, seguimiento logístico y alertas de stock bajo.</li>
+      </ul>
+    </section>
+
+    <section class="slide" aria-labelledby="s14" hidden>
+      <p class="eyebrow">Cierre · 0:20</p>
+      <h2 id="s14">Resumen y preguntas</h2>
+      <ul>
+        <li>El backend integra REST, capas, ORM, base persistente y reglas de inventario.</li>
+        <li>La presentación ocupa <strong>10 minutos</strong>; después hay <strong>5 minutos de preguntas</strong>.</li>
+        <li>La persona seleccionada debe presentar todo el recorrido; el equipo responde preguntas técnicas.</li>
+        <li>Los enlaces de ramas y pull requests individuales deben estar preparados aparte.</li>
+      </ul>
+      <p><strong>Gracias. ¿Preguntas?</strong></p>
+    </section>
+  </main>
+
+  <footer>
+    <span id="counter" aria-live="polite">1 / 15</span>
+    <nav class="controls" aria-label="Controles de diapositivas">
+      <button id="previous" type="button">Anterior</button>
+      <button id="next" type="button">Siguiente</button>
+    </nav>
+  </footer>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const counter = document.querySelector("#counter");
+    const previous = document.querySelector("#previous");
+    const next = document.querySelector("#next");
+    let current = 0;
+
+    function show(index) {
+      current = Math.max(0, Math.min(index, slides.length - 1));
+
+      slides.forEach((slide, position) => {
+        slide.hidden = position !== current;
+      });
+
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      previous.disabled = current === 0;
+      next.disabled = current === slides.length - 1;
+    }
+
+    previous.addEventListener("click", () => show(current - 1));
+    next.addEventListener("click", () => show(current + 1));
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown") {
+        show(current + 1);
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        show(current - 1);
+      }
+    });
+
+    show(0);
+  </script>
+</body>
+</html>
