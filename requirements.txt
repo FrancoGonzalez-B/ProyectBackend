@@ -1,9 +1,0 @@
-fastapi
-uvicorn[standard]
-pydantic
-sqlalchemy
-mysqlclient
-python-dotenv
-alembic
-pytest
-httpx

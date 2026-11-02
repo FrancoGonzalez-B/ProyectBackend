@@ -1,21 +1,24 @@
-# ProyectBackend
-Backend Duro 
-Ingeniero duro
+# Backend Supermercado en Línea - Área C
 
+API REST de supermercado en línea con arquitectura por capas en Node.js, Express, Sequelize y MySQL.
 
-# Reglas del Grupo
+## Instalación
+```bash
+npm install
+cp .env.example .env
+# Edita .env con tus credenciales de MySQL
+npm start
+```
 
--EL integrante debera presentarse a todas las clasea, a menos que tenga una justificación valida o que la totalidad de los estudiantes consideren valida. 
+## Estructura por capas
+- domain/: entidades, reglas de negocio, excepciones, contratos
+- application/services/: casos de uso
+- presentation/: controllers, routes, DTOs, middlewares, errorHandlers
+- infrastructure/: conexión BD, modelos ORM, repositorios SQL
 
--Si el integrante no cumple con sus tareas asignadas acomulara una falta.
-
--Si el integrante no responde mensajes o responde tarde acomulara una falta.
-
--No se admite un copia y pega de algo dado por la IA, el integrante debera tener el conocimieno y control de lo que hace.
-
--El integrante debera avisar o registrar cada cambio que hace en el backend, si tiene dudas consultar con el equipo.
-
--Si el inegrante genera conflicto o distrae al grupo y no trabaja, acumulara una falta.
-
--- AL ACUMULAR TRES FALTAS EL GRUPO TIENE TOTALMENTE AUTORIDAD PARA HECHARLO DEL GRUPO --
-    A menos que el integrante contse con justificativo valido o que arregle su error.
+## Endpoints
+- POST/GET/PUT/DELETE /categorias
+- POST/GET/PUT/DELETE /productos (con filtro, orden, paginación)
+- POST/GET /clientes, GET /clientes/:id
+- POST/GET/PATCH/POST cancelar /pedidos
+- GET /salud
