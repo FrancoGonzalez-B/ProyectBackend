@@ -21,6 +21,8 @@ const mapProduct = (product) => {
     slug: data.slug,
     description: data.description,
     price: Number(data.price),
+    stock: data.stock,
+    sku: data.sku,
     brand: data.brand,
     imageUrl: data.imageUrl,
     isActive: data.isActive,

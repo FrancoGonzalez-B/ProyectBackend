@@ -7,6 +7,8 @@ const mapUser = (user) => {
     lastName: data.lastName,
     email: data.email,
     role: data.role,
+    phone: data.phone,
+    address: data.address,
   };
 };
 

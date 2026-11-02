@@ -15,12 +15,12 @@ module.exports = {
     await queryInterface.bulkInsert('products', [
       {
         name: 'Polera básica', slug: 'polera-basica', description: 'Polera de algodón de corte regular.',
-        price: 12990, brand: 'Tienda', imageUrl: null, isActive: true,
+        price: 12990, stock: 20, sku: 'POL-BAS-001', brand: 'Tienda', imageUrl: null, isActive: true,
         categoryId: categoryIdBySlug.poleras, createdAt: now, updatedAt: now,
       },
       {
         name: 'Jeans rectos', slug: 'jeans-rectos', description: 'Jeans de tiro medio y corte recto.',
-        price: 29990, brand: 'Tienda', imageUrl: null, isActive: true,
+        price: 29990, stock: 6, sku: 'JEA-REC-001', brand: 'Tienda', imageUrl: null, isActive: true,
         categoryId: categoryIdBySlug.pantalones, createdAt: now, updatedAt: now,
       },
     ]);

@@ -28,6 +28,18 @@ const Product = sequelize.define('Product', {
     allowNull: false,
     validate: { min: 0 },
   },
+  stock: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    validate: { min: 0 },
+  },
+  sku: {
+    type: DataTypes.STRING(80),
+    allowNull: false,
+    unique: true,
+    validate: { notEmpty: true },
+  },
   brand: {
     type: DataTypes.STRING(80),
     allowNull: true,
