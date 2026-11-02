@@ -74,6 +74,8 @@ El puerto predeterminado es 3000; `PORT` permite cambiarlo. Para desarrollo usar
 
 La especificación completa está en [docs/openapi.json](docs/openapi.json), con DTO, parámetros, ejemplos, respuestas y permisos. En el cliente de API ajustar el servidor base si se cambia `PORT`.
 
+Los diagramas de clases, datos y recorrido entre capas están en [docs/modelo-y-arquitectura.md](docs/modelo-y-arquitectura.md). La colección Postman importable está en [docs/pruebas.postman_collection.json](docs/pruebas.postman_collection.json), y la presentación navegable y guion de defensa están en [docs/presentacion.html](docs/presentacion.html) y [docs/presentacion-y-defensa.md](docs/presentacion-y-defensa.md). Los resultados de la última ejecución se registran en [docs/evidencias-pruebas.md](docs/evidencias-pruebas.md).
+
 Abre `http://localhost:3000/api-docs/` para usar Swagger. Expande un endpoint y pulsa **Try it out**, completa los datos y pulsa **Execute**. Para operaciones protegidas, ejecuta primero `POST /auth/login`, copia el campo `token` de la respuesta y pégalo en **Authorize** sin anteponer `Bearer`. La interfaz agrega ese prefijo automáticamente. Las llamadas de Swagger usan el mismo host y puerto del navegador.
 
 ## Autenticación y permisos
@@ -196,6 +198,16 @@ npm run db:verify
 
 Este comando revisa integridad en la base configurada. Los seeders son repetibles y la reversión se limita a sus propios datos; si existen referencias debe detenerse sin un borrado parcial. `db:migrate:undo` y `db:seed:undo` revierten cambios: usarlos sobre bases de pruebas o con un respaldo.
 
+### Colección Postman
+
+Importa `docs/pruebas.postman_collection.json`. Configura `baseUrl` con el host y puerto donde se ejecuta la API. Para las solicitudes administrativas, copia localmente `ADMIN_EMAIL` y `ADMIN_PASSWORD` desde `.env` a las variables de la colección; no exportes ni publiques esos valores. Ejecuta las solicitudes en orden: la colección conserva el token y los IDs de los recursos de prueba. Incluye salud, login, CRUD, validación 422, recurso inexistente 404, transición de pedido inválida 409 y filtro/orden/paginación.
+
+Para comprobar un reinicio de la API, ejecuta las solicitudes 10 y 11, detén e inicia el servidor, ejecuta la 12 para verificar la categoría persistida y termina con la 13 para eliminar el dato temporal. La base de datos debe permanecer activa durante el reinicio del servidor.
+
+### Registros de demostración
+
+`npm run db:seed` carga el catálogo, dos clientes de muestra, dos pedidos pendientes y sus dos detalles en variantes válidas. Las contraseñas de esos clientes son nulas; son datos para consulta y demostración, no cuentas de inicio de sesión. El inventario se descuenta por las líneas de pedido de forma transaccional. El seeder es repetible y su reversión sólo elimina las filas propias; conserva los registros si un cliente de muestra ya tiene pedidos ajenos.
+
 ## Organización por capas
 
 - `domain/`: entidades, estados, excepciones y contratos de repositorio.
@@ -206,3 +218,14 @@ Este comando revisa integridad en la base configurada. Los seeders son repetible
 - `tests/`: pruebas unitarias y de contrato; `integration/`: pruebas MySQL/HTTP.
 
 Actualizar OpenAPI y pruebas junto con cualquier cambio del contrato de endpoints.
+
+## Equipo y responsabilidades
+
+Completar con los nombres reales del grupo antes de la entrega. El grupo está compuesto por cuatro integrantes; coordinación y documentación/integración se combinan, como permite la pauta. Falta completar la rama y el pull request individual de cada persona con sus enlaces verificables.
+
+| Integrante | Área principal | Rama / pull request |
+| --- | --- | --- |
+| Benjamin Aedo | Coordinación y seguimiento; documentación e integración | Pendiente |
+| Franco Gonzales | Dominio y datos | Pendiente |
+| Lucas Martinez | API y lógica de negocio | Pendiente |
+| Francisco Martinez | Calidad y pruebas | Pendiente |

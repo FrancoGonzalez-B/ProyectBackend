@@ -535,11 +535,57 @@ async function main() {
     });
     await check('Seeder repetible y undo atómico', async () => {
       const seed = require('../database/seeders/20261028000100-initial-catalog'),
+        demoSeed = require('../database/seeders/20261102000200-demo-customers-orders'),
         q = db.sequelize.getQueryInterface();
       const before = await db.Variante.count();
+      const demoRecords = () =>
+        db.sequelize.query(
+          'SELECT tableName, COUNT(*) AS cantidad FROM catalog_seed_records WHERE seed=:seed GROUP BY tableName',
+          {
+            replacements: { seed: 'demo-customers-orders-v1' },
+            type: require('sequelize').QueryTypes.SELECT,
+          },
+        );
+      const demoStock = async () =>
+        Number(
+          await db.Variante.sum('stock', {
+            where: {
+              sku: {
+                [require('sequelize').Op.in]: [
+                  'POL-BAS-BLA-M',
+                  'JEA-REC-AZU-42',
+                ],
+              },
+            },
+          }),
+        );
+      const stockBefore = await demoStock();
       cli('db:seed:all');
       await seed.up(q);
+      await demoSeed.up(q);
       assert.equal(await db.Variante.count(), before);
+      assert.equal(await demoStock(), stockBefore);
+      assert.deepEqual(
+        Object.fromEntries(
+          (await demoRecords()).map((record) => [
+            record.tableName,
+            Number(record.cantidad),
+          ]),
+        ),
+        { users: 2, pedidos: 2, detalles_pedido: 2 },
+      );
+      await demoSeed.down(q);
+      assert.deepEqual(await demoRecords(), []);
+      await demoSeed.up(q);
+      assert.deepEqual(
+        Object.fromEntries(
+          (await demoRecords()).map((record) => [
+            record.tableName,
+            Number(record.cantidad),
+          ]),
+        ),
+        { users: 2, pedidos: 2, detalles_pedido: 2 },
+      );
       await assert.rejects(seed.down(q));
       assert.equal(await db.Variante.count(), before);
       assert.ok(await db.Producto.findByPk(p.id));

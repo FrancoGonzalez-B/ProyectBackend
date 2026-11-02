@@ -1,0 +1,360 @@
+{
+  "info": {
+    "_postman_id": "c07fae77-25af-4fd7-8cb7-fb28310c1260",
+    "name": "Backend tienda - pauta ICINF1108",
+    "description": "Pruebas reproducibles de salud, autenticación, CRUD, validación, reglas de negocio, filtros y persistencia. Configura adminEmail/adminPassword como variables locales; nunca exportes secretos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001" },
+    { "key": "adminEmail", "value": "admin@example.test" },
+    { "key": "adminPassword", "value": "" },
+    { "key": "token", "value": "" },
+    { "key": "categoriaId", "value": "" },
+    { "key": "buscarProducto", "value": "" },
+    { "key": "productoId", "value": "" },
+    { "key": "pedidoId", "value": "" },
+    { "key": "pruebaCategoriaId", "value": "" },
+    { "key": "nombrePrueba", "value": "" },
+    { "key": "nombrePersistido", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "01 - Salud (200)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/salud"
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('nombrePrueba', 'Prueba Postman ' + Date.now());",
+              "pm.collectionVariables.set('nombrePersistido', 'Prueba Postman persistida ' + Date.now());"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 y estado ok', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().estado).to.eql('ok');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Iniciar sesión de administrador",
+      "request": {
+        "method": "POST",
+        "auth": { "type": "noauth" },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login devuelve token y usuario administrador', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.token).to.be.a('string').and.not.empty;",
+              "  pm.expect(body.usuario.role).to.eql('admin');",
+              "  pm.collectionVariables.set('token', body.token);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Listar categorías (200)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/categorias"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Hay categorías persistidas para usar en el catálogo', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.be.an('array').that.is.not.empty;",
+              "  pm.collectionVariables.set('categoriaId', body[0].id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Listar y ordenar productos (200)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/productos?pagina=1&limite=50&ordenarPor=precio&descendente=false"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Devuelve productos y metadatos de paginación', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.items).to.be.an('array').that.is.not.empty;",
+              "  pm.expect(body.pagina).to.eql(1);",
+              "  pm.expect(body.limite).to.eql(50);",
+              "  pm.expect(body.totalPaginas).to.be.above(0);",
+              "  pm.collectionVariables.set('productoId', body.items[0].id);",
+              "  pm.collectionVariables.set('categoriaId', body.items[0].categoriaId);",
+              "  pm.collectionVariables.set('buscarProducto', body.items[0].nombre);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Filtrar, ordenar y paginar (200)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/productos?categoria={{categoriaId}}&buscar={{buscarProducto}}&ordenarPor=precio&descendente=false&pagina=1&limite=10"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Filtro, orden y paginación devuelven el producto esperado', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.items).to.be.an('array').that.is.not.empty;",
+              "  pm.expect(body.items[0].categoriaId).to.eql(Number(pm.collectionVariables.get('categoriaId')));",
+              "  pm.expect(body.total).to.be.at.least(body.items.length);",
+              "  pm.expect(body.totalPaginas).to.eql(Math.ceil(body.total / body.limite));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Obtener pedido de muestra (200)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/pedidos"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Hay pedidos de muestra pendientes', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const order = pm.response.json().find(function (item) { return item.estado === 'PENDIENTE'; });",
+              "  pm.expect(order, 'Ejecuta npm run db:seed para cargar pedidos de ejemplo').to.exist;",
+              "  pm.collectionVariables.set('pedidoId', order.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Rechazar transición inválida (409)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"ENVIADO\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/pedidos/{{pedidoId}}/estado"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('No permite saltar de PENDIENTE a ENVIADO', function () {",
+              "  pm.response.to.have.status(409);",
+              "  pm.expect(pm.response.json().error.code).to.eql('CONFLICTO_ESTADO');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Rechazar DTO inválido (422)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"\",\n  \"sku\": \"!\",\n  \"precio\": -1,\n  \"stock\": -1,\n  \"estado\": \"INVALIDO\",\n  \"categoriaId\": -1\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/productos"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('La entrada inválida se rechaza antes de persistir', function () {",
+              "  pm.response.to.have.status(422);",
+              "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Recurso inexistente (404)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/productos/2147483647"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Un ID inexistente devuelve error JSON 404', function () {",
+              "  pm.response.to.have.status(404);",
+              "  pm.expect(pm.response.json().error).to.include.all.keys('code', 'message', 'details');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Crear categoría de prueba (201)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"{{nombrePrueba}}\",\n  \"descripcion\": \"Registro temporal para verificar persistencia\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/categorias"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Crea la categoría de prueba', function () {",
+              "  pm.response.to.have.status(201);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.id).to.be.a('number');",
+              "  pm.collectionVariables.set('pruebaCategoriaId', body.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Actualizar categoría de prueba (200)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"{{nombrePersistido}}\",\n  \"descripcion\": \"Verificar lectura después de reiniciar la API\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/categorias/{{pruebaCategoriaId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Actualiza la categoría existente', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().nombre).to.eql(pm.collectionVariables.get('nombrePersistido'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Leer categoría tras reiniciar API (200)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/categorias/{{pruebaCategoriaId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Los cambios persisten tras reiniciar el servidor', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().nombre).to.eql(pm.collectionVariables.get('nombrePersistido'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Eliminar categoría de prueba (204)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/categorias/{{pruebaCategoriaId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Elimina el dato temporal de la prueba', function () {",
+              "  pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
