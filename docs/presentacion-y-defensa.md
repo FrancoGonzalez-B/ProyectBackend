@@ -2,8 +2,6 @@
 
 Este guion cubre la secuencia exigida por la pauta en diez minutos. Preparar una presentación visual de hasta 15 diapositivas usando estos títulos; el guion no reemplaza el archivo de diapositivas.
 
-La presentación navegable está en [presentacion.html](presentacion.html); se puede abrir en un navegador y recorrer con los botones o las flechas del teclado.
-
 ## Respuestas P1–P7
 
 - **P1 — Situación:** el catálogo, las tallas disponibles y los pedidos pueden quedar en registros separados, haciendo difícil comprobar el stock real antes de vender.

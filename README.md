@@ -74,7 +74,7 @@ El puerto predeterminado es 3000; `PORT` permite cambiarlo. Para desarrollo usar
 
 La especificación completa está en [docs/openapi.json](docs/openapi.json), con DTO, parámetros, ejemplos, respuestas y permisos. En el cliente de API ajustar el servidor base si se cambia `PORT`.
 
-Los diagramas de clases, datos y recorrido entre capas están en [docs/modelo-y-arquitectura.md](docs/modelo-y-arquitectura.md). La colección Postman importable está en [docs/pruebas.postman_collection.json](docs/pruebas.postman_collection.json), y la presentación navegable y guion de defensa están en [docs/presentacion.html](docs/presentacion.html) y [docs/presentacion-y-defensa.md](docs/presentacion-y-defensa.md). Los resultados de la última ejecución se registran en [docs/evidencias-pruebas.md](docs/evidencias-pruebas.md).
+Los diagramas de clases, datos y recorrido entre capas están en [docs/modelo-y-arquitectura.md](docs/modelo-y-arquitectura.md). La colección Postman importable está en [docs/pruebas.postman_collection.json](docs/pruebas.postman_collection.json), y el guion para organizar la defensa está en [docs/presentacion-y-defensa.md](docs/presentacion-y-defensa.md). Los resultados de la última ejecución se registran en [docs/evidencias-pruebas.md](docs/evidencias-pruebas.md).
 
 Abre `http://localhost:3000/api-docs/` para usar Swagger. Expande un endpoint y pulsa **Try it out**, completa los datos y pulsa **Execute**. Para operaciones protegidas, ejecuta primero `POST /auth/login`, copia el campo `token` de la respuesta y pégalo en **Authorize** sin anteponer `Bearer`. La interfaz agrega ese prefijo automáticamente. Las llamadas de Swagger usan el mismo host y puerto del navegador.
 

@@ -48,8 +48,7 @@ Los clientes de ejemplo no tienen contraseña y no son cuentas de inicio de sesi
 
 - Casos importables: [pruebas.postman_collection.json](pruebas.postman_collection.json).
 - Modelo y recorrido por capas: [modelo-y-arquitectura.md](modelo-y-arquitectura.md).
-- Presentación visual de diez diapositivas: [presentacion.html](presentacion.html).
-- Guion y alcance P1–P7: [presentacion-y-defensa.md](presentacion-y-defensa.md).
+- Guion y alcance P1–P7 para preparar las diapositivas: [presentacion-y-defensa.md](presentacion-y-defensa.md).
 
 ## Requisitos grupales pendientes de verificación
 
