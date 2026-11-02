@@ -212,7 +212,7 @@ Para comprobar un reinicio de la API, ejecuta las solicitudes 10 y 11, detén e 
 
 - `domain/`: entidades, estados, excepciones y contratos de repositorio.
 - `application/services/`: reglas de negocio y coordinación.
-- `infrastructure/`: conexión, modelos Sequelize, persistencia y seguridad.
+- `infrastructure/`: conexión, modelos Sequelize, persistencia y seguridad
 - `presentation/`: DTO, validación, controladores, rutas y errores HTTP.
 - `database/migrations/` y `database/seeders/`: estructura versionada y catálogo inicial.
 - `tests/`: pruebas unitarias y de contrato; `integration/`: pruebas MySQL/HTTP.
