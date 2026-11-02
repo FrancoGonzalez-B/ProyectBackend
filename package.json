@@ -1,12 +1,12 @@
 {
   "name": "backendtienda",
   "version": "1.0.0",
-  "description": "Backend Duro",
-  "main": "index.js",
+  "description": "Backend de tienda en línea con Express, Sequelize y MySQL",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "dev": "nodemon index.js",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
     "db:seed": "sequelize-cli db:seed:all",
@@ -16,15 +16,10 @@
     "type": "git",
     "url": "git+https://github.com/FrancoGonzalez-B/ProyectBackend.git"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/FrancoGonzalez-B/ProyectBackend/issues"
-  },
-  "homepage": "https://github.com/FrancoGonzalez-B/ProyectBackend#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mysql2": "^3.24.2",
