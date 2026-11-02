@@ -1,6 +1,3 @@
-const { validarProductoCrear } = require('../dtos/ProductoDTO');
-const { validarDTO } = require('../middlewares/validarDTO');
-
 class ProductosController {
   constructor({ productoService }) {
     this.productoService = productoService;
@@ -8,16 +5,6 @@ class ProductosController {
 
   async crear(req, res, next) {
     try {
-      const errores = validarProductoCrear(req.body);
-      if (errores.length > 0) {
-        return res.status(422).json({
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Los datos enviados no cumplen las validaciones',
-            details: errores,
-          },
-        });
-      }
       const producto = await this.productoService.crear(req.body);
       return res.status(201).json(producto);
     } catch (err) {
@@ -36,7 +23,7 @@ class ProductosController {
 
   async obtener(req, res, next) {
     try {
-      const producto = await this.productoService.obtener(parseInt(req.params.id));
+      const producto = await this.productoService.obtener(Number(req.params.id));
       return res.json(producto);
     } catch (err) {
       next(err);
@@ -45,17 +32,7 @@ class ProductosController {
 
   async actualizar(req, res, next) {
     try {
-      const errores = validarProductoCrear(req.body);
-      if (errores.length > 0) {
-        return res.status(422).json({
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Los datos enviados no cumplen las validaciones',
-            details: errores,
-          },
-        });
-      }
-      const producto = await this.productoService.actualizar(parseInt(req.params.id), req.body);
+      const producto = await this.productoService.actualizar(Number(req.params.id), req.body);
       return res.json(producto);
     } catch (err) {
       next(err);
@@ -64,7 +41,7 @@ class ProductosController {
 
   async eliminar(req, res, next) {
     try {
-      await this.productoService.eliminar(parseInt(req.params.id));
+      await this.productoService.eliminar(Number(req.params.id));
       return res.status(204).send();
     } catch (err) {
       next(err);

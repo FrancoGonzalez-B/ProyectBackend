@@ -8,11 +8,12 @@ class CategoriaService {
   }
 
   async crear({ nombre, descripcion, activa }) {
-    const existente = await this.categoriaRepository.obtenerPorNombre(nombre);
+    const nombreNormalizado = nombre.trim();
+    const existente = await this.categoriaRepository.obtenerPorNombre(nombreNormalizado);
     if (existente) {
-      throw new ConflictoDeEstado('Ya existe una categoría con ese nombre', [{ campo: 'nombre', valor: nombre }]);
+      throw new ConflictoDeEstado('Ya existe una categoría con ese nombre', [{ campo: 'nombre', valor: nombreNormalizado }]);
     }
-    return await this.categoriaRepository.crear({ nombre, descripcion, activa });
+    return await this.categoriaRepository.crear({ nombre: nombreNormalizado, descripcion, activa });
   }
 
   async listar() {
@@ -29,11 +30,12 @@ class CategoriaService {
 
   async actualizar(id, { nombre, descripcion, activa }) {
     const categoria = await this.obtener(id);
-    const existente = await this.categoriaRepository.obtenerPorNombre(nombre);
+    const nombreNormalizado = nombre.trim();
+    const existente = await this.categoriaRepository.obtenerPorNombre(nombreNormalizado);
     if (existente && existente.id !== id) {
-      throw new ConflictoDeEstado('Ya existe una categoría con ese nombre', [{ campo: 'nombre', valor: nombre }]);
+      throw new ConflictoDeEstado('Ya existe una categoría con ese nombre', [{ campo: 'nombre', valor: nombreNormalizado }]);
     }
-    return await this.categoriaRepository.actualizar(id, { nombre, descripcion, activa });
+    return await this.categoriaRepository.actualizar(id, { nombre: nombreNormalizado, descripcion, activa });
   }
 
   async eliminar(id) {

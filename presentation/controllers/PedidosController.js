@@ -1,6 +1,3 @@
-const { validarPedidoCrear } = require('../dtos/PedidoDTO');
-const { validarDTO } = require('../middlewares/validarDTO');
-
 class PedidosController {
   constructor({ pedidoService }) {
     this.pedidoService = pedidoService;
@@ -8,16 +5,6 @@ class PedidosController {
 
   async crear(req, res, next) {
     try {
-      const errores = validarPedidoCrear(req.body);
-      if (errores.length > 0) {
-        return res.status(422).json({
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Los datos enviados no cumplen las validaciones',
-            details: errores,
-          },
-        });
-      }
       const pedido = await this.pedidoService.crear(req.body);
       return res.status(201).json(pedido);
     } catch (err) {
@@ -36,7 +23,7 @@ class PedidosController {
 
   async obtener(req, res, next) {
     try {
-      const pedido = await this.pedidoService.obtener(parseInt(req.params.id));
+      const pedido = await this.pedidoService.obtener(Number(req.params.id));
       return res.json(pedido);
     } catch (err) {
       next(err);
@@ -45,7 +32,7 @@ class PedidosController {
 
   async cambiarEstado(req, res, next) {
     try {
-      const pedido = await this.pedidoService.cambiarEstado(parseInt(req.params.id), req.body.estado);
+      const pedido = await this.pedidoService.cambiarEstado(Number(req.params.id), req.body.estado);
       return res.json(pedido);
     } catch (err) {
       next(err);
@@ -54,7 +41,7 @@ class PedidosController {
 
   async cancelar(req, res, next) {
     try {
-      const pedido = await this.pedidoService.cancelar(parseInt(req.params.id));
+      const pedido = await this.pedidoService.cancelar(Number(req.params.id));
       return res.json(pedido);
     } catch (err) {
       next(err);

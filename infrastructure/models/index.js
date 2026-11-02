@@ -5,17 +5,17 @@ const Producto = require('./Producto');
 const Pedido = require('./Pedido');
 const DetallePedido = require('./DetallePedido');
 
-Categoria.hasMany(Producto, { foreignKey: 'categoriaId' });
-Producto.belongsTo(Categoria, { foreignKey: 'categoriaId' });
+Categoria.hasMany(Producto, { foreignKey: 'categoryId', as: 'productos' });
+Producto.belongsTo(Categoria, { foreignKey: 'categoryId', as: 'categoria' });
 
-Usuario.hasMany(Pedido, { foreignKey: 'clienteId' });
-Pedido.belongsTo(Usuario, { foreignKey: 'clienteId' });
+Usuario.hasMany(Pedido, { foreignKey: 'clienteId', as: 'pedidos' });
+Pedido.belongsTo(Usuario, { foreignKey: 'clienteId', as: 'cliente' });
 
-Pedido.hasMany(DetallePedido, { foreignKey: 'pedidoId' });
-DetallePedido.belongsTo(Pedido, { foreignKey: 'pedidoId' });
+Pedido.hasMany(DetallePedido, { foreignKey: 'pedidoId', as: 'detalles' });
+DetallePedido.belongsTo(Pedido, { foreignKey: 'pedidoId', as: 'pedido' });
 
-Producto.hasMany(DetallePedido, { foreignKey: 'productoId' });
-DetallePedido.belongsTo(Producto, { foreignKey: 'productoId' });
+Producto.hasMany(DetallePedido, { foreignKey: 'productoId', as: 'detallesPedido' });
+DetallePedido.belongsTo(Producto, { foreignKey: 'productoId', as: 'producto' });
 
 const db = {
   sequelize,

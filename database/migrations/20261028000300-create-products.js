@@ -6,7 +6,7 @@ module.exports = {
       id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false },
       name: { type: Sequelize.STRING(150), allowNull: false },
       slug: { type: Sequelize.STRING(180), allowNull: false, unique: true },
-      description: { type: Sequelize.TEXT, allowNull: false },
+      description: { type: Sequelize.TEXT, allowNull: true },
       price: { type: Sequelize.DECIMAL(10, 2), allowNull: false },
       brand: { type: Sequelize.STRING(80), allowNull: true },
       imageUrl: { type: Sequelize.STRING(500), allowNull: true },

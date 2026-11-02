@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const errorHandler = require('./presentation/errorHandlers');
-const { sequelize, conectar } = require('./infrastructure/database');
+const { conectar } = require('./infrastructure/database');
 const db = require('./infrastructure/models');
 
 const CategoriaRepositorySQL = require('./infrastructure/repositories/CategoriaRepositorySQL');
@@ -45,12 +45,20 @@ app.get('/salud', (req, res) => {
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
-
-conectar().then(() => {
-  app.listen(PORT, () => {
-    console.log('Servidor en http://localhost:' + PORT);
+async function start() {
+  await conectar();
+  const port = Number(process.env.PORT || 3000);
+  return app.listen(port, () => {
+    console.log('Servidor en http://localhost:' + port);
   });
-});
+}
 
+if (require.main === module) {
+  start().catch((error) => {
+    console.error('No se pudo iniciar el servidor:', error);
+    process.exitCode = 1;
+  });
+}
+
+app.start = start;
 module.exports = app;

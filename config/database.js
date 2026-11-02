@@ -1,13 +1,6 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-const requiredVariables = ['DB_NAME', 'DB_USER', 'DB_HOST'];
-const missingVariables = requiredVariables.filter((variable) => !process.env[variable]);
-
-if (missingVariables.length > 0) {
-  throw new Error(`Faltan variables de entorno para la base de datos: ${missingVariables.join(', ')}`);
-}
-
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,

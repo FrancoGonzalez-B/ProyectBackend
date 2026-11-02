@@ -26,7 +26,7 @@ class PedidoService {
         continue;
       }
       productos[producto.id] = producto;
-      if (!producto.tieneStockPara(detalles[i].cantidad)) {
+      if (producto.estado !== 'DISPONIBLE' || !producto.tieneStockPara(detalles[i].cantidad)) {
         sinStock.push({
           productoId: producto.id,
           nombre: producto.nombre,
@@ -45,10 +45,12 @@ class PedidoService {
 
     // Fase 2: Aplicar cambios
     const detalleObjetos = [];
+    const cambiosStock = [];
     for (const d of detalles) {
       const producto = productos[d.productoId];
+      const stockAnterior = producto.stock;
       producto.descontarStock(d.cantidad);
-      await this.productoRepository.actualizar(producto.id, { stock: producto.stock, estado: producto.estado });
+      cambiosStock.push({ id: producto.id, stockAnterior, stock: producto.stock });
       detalleObjetos.push({
         productoId: producto.id,
         cantidad: d.cantidad,
@@ -60,7 +62,7 @@ class PedidoService {
       clienteId,
       direccionEnvio: direccionEnvio || cliente.direccion,
       detalles: detalleObjetos,
-    });
+    }, cambiosStock);
 
     return pedido;
   }
@@ -86,12 +88,19 @@ class PedidoService {
   async cancelar(id) {
     const pedido = await this.obtener(id);
     pedido.cancelar();
+    const cambiosStock = [];
     for (const detalle of pedido.detalles) {
       const producto = await this.productoRepository.obtenerPorId(detalle.productoId);
+      if (!producto) {
+        throw new RecursoNoEncontrado('No existe un producto de este pedido', [
+          { campo: 'productoId', valor: detalle.productoId },
+        ]);
+      }
+      const stockAnterior = producto.stock;
       producto.reponerStock(detalle.cantidad);
-      await this.productoRepository.actualizar(producto.id, { stock: producto.stock, estado: producto.estado });
+      cambiosStock.push({ id: producto.id, stockAnterior, stock: producto.stock });
     }
-    return await this.pedidoRepository.actualizar(id, { estado: 'CANCELADO' });
+    return this.pedidoRepository.actualizarConStock(id, { estado: 'CANCELADO' }, cambiosStock);
   }
 }
 

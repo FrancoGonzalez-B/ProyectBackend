@@ -1,18 +1,24 @@
 function validarClienteCrear(data) {
   const errores = [];
-  if (!data.nombre || data.nombre.length < 2 || data.nombre.length > 100) {
+  data = data && typeof data === 'object' ? data : {};
+  if (typeof data.nombre !== 'string' || data.nombre.trim().length < 2 || data.nombre.trim().length > 100) {
     errores.push({ campo: 'nombre', mensaje: 'Nombre debe tener entre 2 y 100 caracteres' });
+  } else {
+    const partesNombre = data.nombre.trim().split(/\s+/);
+    if (partesNombre[0].length > 60 || partesNombre.slice(1).join(' ').length > 60) {
+      errores.push({ campo: 'nombre', mensaje: 'El nombre y apellido no pueden superar 60 caracteres cada uno' });
+    }
   }
   const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-  if (!data.email || !emailRegex.test(data.email)) {
+  if (typeof data.email !== 'string' || !emailRegex.test(data.email)) {
     errores.push({ campo: 'email', mensaje: 'Email inválido' });
   }
   const telefonoRegex = /^\+?[0-9]{8,15}$/;
-  if (!data.telefono || !telefonoRegex.test(data.telefono)) {
+  if (typeof data.telefono !== 'string' || !telefonoRegex.test(data.telefono)) {
     errores.push({ campo: 'telefono', mensaje: 'Teléfono inválido (8 a 15 dígitos)' });
   }
-  if (!data.direccion || data.direccion.length < 5 || data.direccion.length > 200) {
-    errores.push({ campo: 'direccion', mensaje: 'Dirección debe tener entre 5 y 200 caracteres' });
+  if (typeof data.direccion !== 'string' || data.direccion.trim().length < 5 || data.direccion.length > 500) {
+    errores.push({ campo: 'direccion', mensaje: 'Dirección debe tener entre 5 y 500 caracteres' });
   }
   return errores;
 }

@@ -56,9 +56,9 @@ module.exports = {
       },
       direccion_envio: { type: Sequelize.STRING(500), allowNull: false },
       estado: {
-        type: Sequelize.ENUM('pendiente', 'pagado', 'enviado', 'entregado', 'cancelado'),
+        type: Sequelize.ENUM('PENDIENTE', 'CONFIRMADO', 'ENVIADO', 'ENTREGADO', 'CANCELADO'),
         allowNull: false,
-        defaultValue: 'pendiente',
+        defaultValue: 'PENDIENTE',
       },
       fecha: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') },
       total: { type: Sequelize.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
