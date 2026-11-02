@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { CategoriasController } = require('../controllers/CategoriasController');
+const CategoriasController = require('../controllers/CategoriasController');
 const { validarDTO } = require('../middlewares/validarDTO');
 const { validarCategoriaCrear } = require('../dtos/CategoriaDTO');
 

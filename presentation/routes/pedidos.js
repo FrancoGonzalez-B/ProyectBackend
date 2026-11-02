@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PedidosController } = require('../controllers/PedidosController');
+const PedidosController = require('../controllers/PedidosController');
 const { validarDTO } = require('../middlewares/validarDTO');
 const { validarPedidoCrear } = require('../dtos/PedidoDTO');
 

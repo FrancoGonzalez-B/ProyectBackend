@@ -5,10 +5,10 @@ const errorHandler = require('./presentation/errorHandlers');
 const { sequelize, conectar } = require('./infrastructure/database');
 const db = require('./infrastructure/models');
 
-const { CategoriaRepositorySQL } = require('./infrastructure/repositories/CategoriaRepositorySQL');
-const { ProductoRepositorySQL } = require('./infrastructure/repositories/ProductoRepositorySQL');
-const { ClienteRepositorySQL } = require('./infrastructure/repositories/ClienteRepositorySQL');
-const { PedidoRepositorySQL } = require('./infrastructure/repositories/PedidoRepositorySQL');
+const CategoriaRepositorySQL = require('./infrastructure/repositories/CategoriaRepositorySQL');
+const ProductoRepositorySQL = require('./infrastructure/repositories/ProductoRepositorySQL');
+const ClienteRepositorySQL = require('./infrastructure/repositories/ClienteRepositorySQL');
+const PedidoRepositorySQL = require('./infrastructure/repositories/PedidoRepositorySQL');
 
 const CategoriaService = require('./application/services/CategoriaService');
 const ProductoService = require('./application/services/ProductoService');
