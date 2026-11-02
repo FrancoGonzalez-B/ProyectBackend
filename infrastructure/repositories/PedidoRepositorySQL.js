@@ -1,116 +1,185 @@
-const ConflictoDeEstado = require('../../domain/exceptions/ConflictoDeEstado');
-const DetallePedido = require('../../domain/entities/DetallePedido');
-const Pedido = require('../../domain/entities/Pedido');
+const { Op } = require('sequelize');
 const db = require('../models');
-
-const mapPedido = (pedido) => {
-  if (!pedido) return null;
-  const data = pedido.get ? pedido.get({ plain: true }) : pedido;
+const Pedido = require('../../domain/entities/Pedido');
+const DetallePedido = require('../../domain/entities/DetallePedido');
+const RecursoNoEncontrado = require('../../domain/exceptions/RecursoNoEncontrado');
+const ConflictoDeEstado = require('../../domain/exceptions/ConflictoDeEstado');
+const ReglaDeNegocioViolada = require('../../domain/exceptions/ReglaDeNegocioViolada');
+const { totalCents } = require('../../domain/money');
+function mapPedido(row) {
+  if (!row) return null;
+  const data = row.get({ plain: true });
   return new Pedido({
-    id: data.id,
-    clienteId: data.clienteId,
-    direccionEnvio: data.direccionEnvio,
-    estado: data.estado,
-    fecha: data.fecha,
-    detalles: (data.detalles || []).map((detalle) => new DetallePedido({
-      id: detalle.id,
-      pedidoId: detalle.pedidoId,
-      productoId: detalle.productoId,
-      cantidad: detalle.cantidad,
-      precioUnitario: Number(detalle.precioUnitario),
-    })),
+    ...data,
+    detalles: (data.detalles || []).map(
+      (d) =>
+        new DetallePedido({ ...d, precioUnitario: Number(d.precioUnitario) }),
+    ),
   });
-};
-
-const includeDetalles = [{ model: db.DetallePedido, as: 'detalles' }];
-
+}
+const include = [{ model: db.DetallePedido, as: 'detalles' }];
 class PedidoRepositorySQL {
   async obtenerPorId(id) {
-    return mapPedido(await db.Pedido.findByPk(id, { include: includeDetalles }));
+    return mapPedido(await db.Pedido.findByPk(id, { include }));
   }
-
   async listar({ clienteId, estado } = {}) {
     const where = {};
-    if (clienteId) where.clienteId = clienteId;
-    if (estado) where.estado = estado;
-    const pedidos = await db.Pedido.findAll({
-      where,
-      include: includeDetalles,
-      order: [['id', 'ASC']],
-    });
-    return pedidos.map(mapPedido);
+    if (clienteId !== undefined) {
+      if (!Number.isSafeInteger(Number(clienteId)) || Number(clienteId) < 1)
+        throw new ReglaDeNegocioViolada('Cliente inválido');
+      where.clienteId = Number(clienteId);
+    }
+    if (estado !== undefined) {
+      if (
+        ![
+          'PENDIENTE',
+          'CONFIRMADO',
+          'ENVIADO',
+          'ENTREGADO',
+          'CANCELADO',
+        ].includes(estado)
+      )
+        throw new ReglaDeNegocioViolada('Estado inválido');
+      where.estado = estado;
+    }
+    return (
+      await db.Pedido.findAll({ where, include, order: [['id', 'ASC']] })
+    ).map(mapPedido);
   }
-
-  async crear(pedido, cambiosStock = []) {
+  async crear({ clienteId, direccionEnvio, detalles }) {
     return db.sequelize.transaction(async (transaction) => {
-      await this.actualizarStock(cambiosStock, transaction);
-      const creado = await db.Pedido.create({
-        clienteId: pedido.clienteId,
-        direccionEnvio: pedido.direccionEnvio,
-        estado: 'PENDIENTE',
-        total: pedido.detalles.reduce(
-          (total, detalle) => total + Math.round(detalle.cantidad * detalle.precioUnitario * 100),
-          0,
-        ) / 100,
-      }, { transaction });
-
-      await db.DetallePedido.bulkCreate(pedido.detalles.map((detalle) => ({
-        pedidoId: creado.id,
-        productoId: detalle.productoId,
-        cantidad: detalle.cantidad,
-        precioUnitario: detalle.precioUnitario,
-      })), { transaction });
-
-      const pedidoCompleto = await db.Pedido.findByPk(creado.id, {
-        include: includeDetalles,
+      const cliente = await db.Usuario.findByPk(clienteId, { transaction });
+      if (!cliente)
+        throw new RecursoNoEncontrado('No existe el cliente indicado');
+      const address = (
+        direccionEnvio === undefined ? cliente.direccion || '' : direccionEnvio
+      ).trim();
+      if (address.length < 5 || address.length > 500)
+        throw new ReglaDeNegocioViolada('Dirección inválida');
+      const ids = [...new Set(detalles.map((d) => d.productoId))].sort(
+        (a, b) => a - b,
+      );
+      const products = await db.Producto.findAll({
+        where: { id: { [Op.in]: ids } },
+        order: [['id', 'ASC']],
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (products.length !== ids.length)
+        throw new RecursoNoEncontrado('Uno o más productos no existen');
+      const lines = [],
+        used = new Set();
+      for (const product of products) {
+        const variants = await db.Variante.findAll({
+          where: { productId: product.id },
+          order: [['id', 'ASC']],
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+        for (const detail of detalles.filter(
+          (d) => d.productoId === product.id,
+        )) {
+          const variant = detail.varianteId
+            ? variants.find((v) => v.id === detail.varianteId)
+            : variants.length === 1
+              ? variants[0]
+              : null;
+          if (!variant)
+            throw new ReglaDeNegocioViolada(
+              'Debes indicar una variante válida del producto',
+              [{ campo: 'varianteId', productoId: product.id }],
+            );
+          if (used.has(variant.id))
+            throw new ReglaDeNegocioViolada('No se puede repetir una variante');
+          used.add(variant.id);
+          if (!product.isActive || variant.stock < detail.cantidad)
+            throw new ReglaDeNegocioViolada('No hay stock suficiente');
+          lines.push({
+            productoId: product.id,
+            varianteId: variant.id,
+            cantidad: detail.cantidad,
+            precioUnitario: Number(
+              variant.price === null ? product.price : variant.price,
+            ),
+          });
+        }
+      }
+      const total = totalCents(lines) / 100;
+      const order = await db.Pedido.create(
+        { clienteId, direccionEnvio: address, estado: 'PENDIENTE', total },
+        { transaction },
+      );
+      await db.DetallePedido.bulkCreate(
+        lines.map((line) => ({ ...line, pedidoId: order.id })),
+        { transaction, validate: true },
+      );
+      for (const line of lines)
+        await db.Variante.decrement('stock', {
+          by: line.cantidad,
+          where: { id: line.varianteId },
+          transaction,
+        });
+      return mapPedido(
+        await db.Pedido.findByPk(order.id, { include, transaction }),
+      );
+    });
+  }
+  async cambiarEstado(id, estado) {
+    return db.sequelize.transaction(async (transaction) => {
+      const row = await db.Pedido.findByPk(id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!row) throw new RecursoNoEncontrado('No existe el pedido');
+      new Pedido({ estado: row.estado }).avanzarEstado(estado);
+      await row.update({ estado }, { transaction });
+      return mapPedido(await db.Pedido.findByPk(id, { include, transaction }));
+    });
+  }
+  async cancelar(id) {
+    return db.sequelize.transaction(async (transaction) => {
+      const order = await db.Pedido.findByPk(id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!order) throw new RecursoNoEncontrado('No existe el pedido');
+      new Pedido({ estado: order.estado }).cancelar();
+      const details = await db.DetallePedido.findAll({
+        where: { pedidoId: id },
+        order: [
+          ['productoId', 'ASC'],
+          ['varianteId', 'ASC'],
+        ],
         transaction,
       });
-      return mapPedido(pedidoCompleto);
-    });
-  }
-
-  async actualizar(id, datos) {
-    const pedido = await db.Pedido.findByPk(id);
-    if (!pedido) return null;
-    await pedido.update(datos);
-    return mapPedido(await db.Pedido.findByPk(id, { include: includeDetalles }));
-  }
-
-  async actualizarConStock(id, datos, cambiosStock) {
-    return db.sequelize.transaction(async (transaction) => {
-      const pedido = await db.Pedido.findByPk(id, { transaction });
-      if (!pedido) return null;
-      await this.actualizarStock(cambiosStock, transaction);
-      await pedido.update(datos, { transaction });
-      return mapPedido(await db.Pedido.findByPk(id, {
-        include: includeDetalles,
-        transaction,
-      }));
-    });
-  }
-
-  async actualizarStock(cambiosStock, transaction) {
-    for (const cambio of cambiosStock) {
-      const [actualizados] = await db.Producto.update(
-        { stock: cambio.stock },
-        { where: { id: cambio.id, stock: cambio.stockAnterior }, transaction },
-      );
-      if (actualizados !== 1) {
+      if (details.some((d) => !d.varianteId))
         throw new ConflictoDeEstado(
-          'El inventario cambió mientras se procesaba el pedido; vuelve a intentarlo',
-          [{ campo: 'productoId', valor: cambio.id }],
+          'Pedido histórico sin variante: reconciliar el inventario antes de cancelar',
         );
+      const ids = [...new Set(details.map((d) => d.productoId))].sort(
+        (a, b) => a - b,
+      );
+      await db.Producto.findAll({
+        where: { id: { [Op.in]: ids } },
+        order: [['id', 'ASC']],
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      for (const detail of details) {
+        const variant = await db.Variante.findByPk(detail.varianteId, {
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+        if (!variant || variant.productId !== detail.productoId)
+          throw new ConflictoDeEstado('No se puede reponer esta variante');
+        await variant.increment('stock', { by: detail.cantidad, transaction });
       }
-    }
+      await order.update({ estado: 'CANCELADO' }, { transaction });
+      return mapPedido(await db.Pedido.findByPk(id, { include, transaction }));
+    });
   }
-
-  async eliminar(id) {
-    return db.Pedido.destroy({ where: { id } });
-  }
-
   async existeConProducto(productoId) {
-    return (await db.DetallePedido.findOne({ where: { productoId } })) !== null;
+    return Boolean(await db.DetallePedido.findOne({ where: { productoId } }));
   }
 }
-
 module.exports = PedidoRepositorySQL;

@@ -1,4 +1,5 @@
 const ConflictoDeEstado = require('../exceptions/ConflictoDeEstado');
+const { totalCents } = require('../money');
 
 class Pedido {
   constructor({ id, clienteId, direccionEnvio, detalles, estado, fecha } = {}) {
@@ -11,10 +12,7 @@ class Pedido {
   }
 
   get total() {
-    return this.detalles.reduce(
-      (sum, detalle) => sum + Math.round(detalle.cantidad * detalle.precioUnitario * 100),
-      0,
-    ) / 100;
+    return totalCents(this.detalles) / 100;
   }
 
   avanzarEstado(nuevoEstado) {
@@ -24,7 +22,9 @@ class Pedido {
       ENVIADO: 'ENTREGADO',
     };
     if (orden[this.estado] !== nuevoEstado) {
-      throw new ConflictoDeEstado('No se puede pasar de ' + this.estado + ' a ' + nuevoEstado);
+      throw new ConflictoDeEstado(
+        'No se puede pasar de ' + this.estado + ' a ' + nuevoEstado,
+      );
     }
     this.estado = nuevoEstado;
   }

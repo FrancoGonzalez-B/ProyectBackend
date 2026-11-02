@@ -1,107 +1,25 @@
 const RecursoNoEncontrado = require('../../domain/exceptions/RecursoNoEncontrado');
-const ReglaDeNegocioViolada = require('../../domain/exceptions/ReglaDeNegocioViolada');
-
 class PedidoService {
-  constructor({ pedidoRepository, productoRepository, clienteRepository }) {
+  constructor({ pedidoRepository }) {
     this.pedidoRepository = pedidoRepository;
-    this.productoRepository = productoRepository;
-    this.clienteRepository = clienteRepository;
   }
-
-  async crear({ clienteId, direccionEnvio, detalles }) {
-    // Fase 1: Validar todo sin tocar nada
-    const cliente = await this.clienteRepository.obtenerPorId(clienteId);
-    if (!cliente) {
-      throw new RecursoNoEncontrado('No existe un cliente con el ID indicado', [{ campo: 'clienteId', valor: clienteId }]);
-    }
-
-    const productos = {};
-    const inexistentes = [];
-    const sinStock = [];
-
-    for (let i = 0; i < detalles.length; i++) {
-      const producto = await this.productoRepository.obtenerPorId(detalles[i].productoId);
-      if (!producto) {
-        inexistentes.push({ campo: 'detalles[' + i + '].productoId', valor: detalles[i].productoId });
-        continue;
-      }
-      productos[producto.id] = producto;
-      if (producto.estado !== 'DISPONIBLE' || !producto.tieneStockPara(detalles[i].cantidad)) {
-        sinStock.push({
-          productoId: producto.id,
-          nombre: producto.nombre,
-          stockDisponible: producto.stock,
-          cantidadSolicitada: detalles[i].cantidad,
-        });
-      }
-    }
-
-    if (inexistentes.length > 0) {
-      throw new RecursoNoEncontrado('Uno o más productos del pedido no existen', inexistentes);
-    }
-    if (sinStock.length > 0) {
-      throw new ReglaDeNegocioViolada('No hay stock suficiente para uno o más productos', sinStock);
-    }
-
-    // Fase 2: Aplicar cambios
-    const detalleObjetos = [];
-    const cambiosStock = [];
-    for (const d of detalles) {
-      const producto = productos[d.productoId];
-      const stockAnterior = producto.stock;
-      producto.descontarStock(d.cantidad);
-      cambiosStock.push({ id: producto.id, stockAnterior, stock: producto.stock });
-      detalleObjetos.push({
-        productoId: producto.id,
-        cantidad: d.cantidad,
-        precioUnitario: producto.precio,
-      });
-    }
-
-    const pedido = await this.pedidoRepository.crear({
-      clienteId,
-      direccionEnvio: direccionEnvio || cliente.direccion,
-      detalles: detalleObjetos,
-    }, cambiosStock);
-
-    return pedido;
+  async crear(datos) {
+    return this.pedidoRepository.crear(datos);
   }
-
-  async listar({ clienteId, estado } = {}) {
-    return await this.pedidoRepository.listar({ clienteId, estado });
+  async listar(filtros = {}) {
+    return this.pedidoRepository.listar(filtros);
   }
-
   async obtener(id) {
     const pedido = await this.pedidoRepository.obtenerPorId(id);
-    if (!pedido) {
-      throw new RecursoNoEncontrado('No existe un pedido con el ID solicitado', [{ campo: 'pedidoId', valor: id }]);
-    }
+    if (!pedido)
+      throw new RecursoNoEncontrado('No existe el pedido solicitado');
     return pedido;
   }
-
-  async cambiarEstado(id, nuevoEstado) {
-    const pedido = await this.obtener(id);
-    pedido.avanzarEstado(nuevoEstado);
-    return await this.pedidoRepository.actualizar(id, { estado: pedido.estado });
+  async cambiarEstado(id, estado) {
+    return this.pedidoRepository.cambiarEstado(id, estado);
   }
-
   async cancelar(id) {
-    const pedido = await this.obtener(id);
-    pedido.cancelar();
-    const cambiosStock = [];
-    for (const detalle of pedido.detalles) {
-      const producto = await this.productoRepository.obtenerPorId(detalle.productoId);
-      if (!producto) {
-        throw new RecursoNoEncontrado('No existe un producto de este pedido', [
-          { campo: 'productoId', valor: detalle.productoId },
-        ]);
-      }
-      const stockAnterior = producto.stock;
-      producto.reponerStock(detalle.cantidad);
-      cambiosStock.push({ id: producto.id, stockAnterior, stock: producto.stock });
-    }
-    return this.pedidoRepository.actualizarConStock(id, { estado: 'CANCELADO' }, cambiosStock);
+    return this.pedidoRepository.cancelar(id);
   }
 }
-
 module.exports = PedidoService;

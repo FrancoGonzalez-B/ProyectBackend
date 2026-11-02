@@ -3,9 +3,10 @@ const mapOrderDetail = (detail) => {
 
   return {
     id: data.id,
-    productId: data.productId,
-    quantity: data.quantity,
-    unitPrice: Number(data.unitPrice),
+    productId: data.productoId,
+    variantId: data.varianteId,
+    quantity: data.cantidad,
+    unitPrice: Number(data.precioUnitario),
   };
 };
 
@@ -14,12 +15,12 @@ const mapOrder = (order) => {
 
   return {
     id: data.id,
-    clientId: data.clientId,
-    shippingAddress: data.shippingAddress,
-    status: data.status,
-    date: data.date,
+    clientId: data.clienteId,
+    shippingAddress: data.direccionEnvio,
+    status: data.estado,
+    date: data.fecha,
     total: Number(data.total),
-    details: data.details ? data.details.map(mapOrderDetail) : undefined,
+    details: data.detalles ? data.detalles.map(mapOrderDetail) : undefined,
   };
 };
 

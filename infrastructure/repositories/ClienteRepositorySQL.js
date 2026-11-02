@@ -39,6 +39,25 @@ class ClienteRepositorySQL {
     });
     return mapCliente(creado);
   }
+
+  async actualizar(id, datos) {
+    const cliente = await db.Usuario.findByPk(id);
+    if (!cliente) return null;
+    const partes = datos.nombre.trim().split(/\s+/);
+    await cliente.update({
+      firstName: partes.shift(),
+      lastName: partes.join(' '),
+      email: datos.email,
+      telefono: datos.telefono,
+      direccion: datos.direccion,
+    });
+    return mapCliente(cliente);
+  }
+
+  async eliminar(id) {
+    // La clave foránea de pedidos impide borrar un cliente con historial.
+    return db.Usuario.destroy({ where: { id } });
+  }
 }
 
 module.exports = ClienteRepositorySQL;

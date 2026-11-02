@@ -9,5 +9,8 @@ module.exports = {
     port: Number(process.env.DB_PORT || 3306),
     dialect: 'mysql',
     logging: false,
+    hooks: { afterConnect: require('../config/mysqlSession') },
+    seederStorage: 'sequelize',
+    seederStorageTableName: 'SequelizeData',
   },
 };

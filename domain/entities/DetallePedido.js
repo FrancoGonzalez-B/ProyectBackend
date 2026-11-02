@@ -1,7 +1,15 @@
 class DetallePedido {
-  constructor({ id, productoId, cantidad, precioUnitario, pedidoId } = {}) {
+  constructor({
+    id,
+    productoId,
+    varianteId,
+    cantidad,
+    precioUnitario,
+    pedidoId,
+  } = {}) {
     this.id = id || null;
     this.productoId = productoId;
+    this.varianteId = varianteId;
     this.cantidad = cantidad;
     this.precioUnitario = precioUnitario;
     this.pedidoId = pedidoId || null;

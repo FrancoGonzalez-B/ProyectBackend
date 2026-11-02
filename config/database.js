@@ -10,6 +10,7 @@ const sequelize = new Sequelize(
     port: Number(process.env.DB_PORT || 3306),
     dialect: 'mysql',
     logging: false,
+    hooks: { afterConnect: require('./mysqlSession') },
   },
 );
 

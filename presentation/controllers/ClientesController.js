@@ -29,6 +29,27 @@ class ClientesController {
       next(err);
     }
   }
+
+  async actualizar(req, res, next) {
+    try {
+      const cliente = await this.clienteService.actualizar(
+        Number(req.params.id),
+        req.body,
+      );
+      return res.json(cliente);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async eliminar(req, res, next) {
+    try {
+      await this.clienteService.eliminar(Number(req.params.id));
+      return res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = ClientesController;
